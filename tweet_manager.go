@@ -26,9 +26,19 @@ func (tm *TweetManager) Init() {
 	if tm.SendMessage {
 		tm.MessageQueueConn, tm.ConnectionError = stomp.Dial("tcp", "127.0.0.1:61613", stomp.Options{})
 	}
+
+	go tm.collectIncomingMessages()
+
 }
 
 func (tm *TweetManager) SendToMessageQueue(t anaconda.Tweet) {
 	js, _ := json.Marshal(t)
 	tm.MessageQueueConn.Send("test.queue", "application/json", js, nil)
+	tm.InC <- "sent message"
+}
+
+func (tm *TweetManager) collectIncomingMessages() {
+	for message := range tm.InC {
+		fmt.Printf("manager message received: %s\n", message)
+	}
 }

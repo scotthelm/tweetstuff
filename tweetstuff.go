@@ -25,7 +25,6 @@ func main() {
 
 	if err == nil {
 		tm := TweetManager{SendMessage: *sm, PersistToPostgres: *pm, InC: make(chan interface{})}
-		fmt.Println(*sm)
 		tm.Init()
 		for tweet := range searchResult.C {
 			theTweet := tweet.(anaconda.Tweet)
