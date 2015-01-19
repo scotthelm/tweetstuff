@@ -7,9 +7,11 @@ It reads from the Twitter streaming API using the fantastic
 tweet text and author to stdout.
 
 Depending on the command line flags given to it, it will forward the JSON of the
-message to a [Stomp protocol](https://stomp.github.io/) message queue broker.
+message to a [Stomp protocol](https://stomp.github.io/) message queue broker
+using the [go-stomp](https://github.com/go-stomp/stomp) library.
 In this project, I use [ActiveMQ](http://activemq.apache.org/). and optionally
-dequeue the messages and put selected fields into a database.
+dequeue the messages and put selected fields into a database (using
+[sqlx](https://github.com/jmoiron/sqlx))
 
 ## Prerequisites
 
