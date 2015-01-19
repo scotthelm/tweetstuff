@@ -7,12 +7,13 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"gopkg.in/stomp.v1"
+	"os"
 )
 
 type TweetManager struct {
 	SendMessage       bool
 	PersistToPostgres bool
-	InC               chan interface{}
+	InC               chan os.Signal
 	MessageQueueConn  *stomp.Conn
 	MQConnectionError error
 	MessageQueueUrl   string
@@ -20,13 +21,15 @@ type TweetManager struct {
 	DbError           error
 	TweetSub          *stomp.Subscription
 	TweetSubError     error
+	TwitterApi        *anaconda.TwitterApi
+	CleanupChannel    chan bool
 }
 
 func (tm *TweetManager) Manage(tweet anaconda.Tweet) {
 	if tm.SendMessage {
 		go tm.SendToMessageQueue(tweet)
 	}
-	//fmt.Printf("%s --(%s) \n", tweet.Text, tweet.User.Name)
+	fmt.Printf("%s --(%s) \n", tweet.Text, tweet.User.Name)
 }
 
 func (tm *TweetManager) Init() {
@@ -41,7 +44,7 @@ func (tm *TweetManager) Init() {
 		go tm.GetMessageTweets()
 	}
 
-	go tm.channelComm()
+	go tm.signalComm()
 
 }
 
@@ -50,9 +53,11 @@ func (tm *TweetManager) SendToMessageQueue(t anaconda.Tweet) {
 	tm.MessageQueueConn.Send("test.queue", "application/json", js, nil)
 }
 
-func (tm *TweetManager) channelComm() {
-	for message := range tm.InC {
-		fmt.Printf("manager message received: %s\n", message)
+func (tm *TweetManager) signalComm() {
+	for sig := range tm.InC {
+		fmt.Printf("\nreceived signal: %s\n", sig.String())
+		fmt.Println("Finished cleanup")
+		tm.CleanupChannel <- true
 	}
 }
 
